@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { TradeRequest } from '@/types'
 
 interface TradeBarProps {
@@ -13,14 +13,23 @@ export default function TradeBar({ defaultTicker = '', onTrade }: TradeBarProps)
   const [quantity, setQuantity] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!success) return
+    const t = setTimeout(() => setSuccess(null), 3000)
+    return () => clearTimeout(t)
+  }, [success])
 
   async function submit(side: 'buy' | 'sell') {
     const qty = parseInt(quantity, 10)
     if (!ticker || isNaN(qty) || qty <= 0) return
     setLoading(true)
     setError(null)
+    setSuccess(null)
     try {
       await onTrade({ ticker: ticker.toUpperCase(), side, quantity: qty })
+      setSuccess(`${side === 'buy' ? 'Bought' : 'Sold'} ${qty} ${ticker.toUpperCase()}`)
       setQuantity('')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Trade failed')
@@ -64,7 +73,7 @@ export default function TradeBar({ defaultTicker = '', onTrade }: TradeBarProps)
             onClick={() => submit('buy')}
             disabled={loading}
             className="flex-1 py-1.5 text-xs font-bold rounded uppercase tracking-wider"
-            style={{ backgroundColor: '#3fb950', color: '#0d1117' }}
+            style={{ backgroundColor: '#3fb950', color: '#0d1117', opacity: loading ? 0.6 : 1 }}
           >
             Buy
           </button>
@@ -72,11 +81,16 @@ export default function TradeBar({ defaultTicker = '', onTrade }: TradeBarProps)
             onClick={() => submit('sell')}
             disabled={loading}
             className="flex-1 py-1.5 text-xs font-bold rounded uppercase tracking-wider"
-            style={{ backgroundColor: '#f85149', color: '#e6edf3' }}
+            style={{ backgroundColor: '#f85149', color: '#e6edf3', opacity: loading ? 0.6 : 1 }}
           >
             Sell
           </button>
         </div>
+        {success && (
+          <p className="text-xs" style={{ color: '#3fb950' }}>
+            ✓ {success}
+          </p>
+        )}
         {error && (
           <p className="text-xs" style={{ color: '#f85149' }}>
             {error}
