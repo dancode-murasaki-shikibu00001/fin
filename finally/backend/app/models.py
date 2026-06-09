@@ -87,3 +87,5 @@ class ChatResponse(BaseModel):
     message: str
     trades: list[TradeAction] = []
     watchlist_changes: list[WatchlistChange] = []
+    executed_trades: list[TradeAction] = []
+    errors: list[str] = []
