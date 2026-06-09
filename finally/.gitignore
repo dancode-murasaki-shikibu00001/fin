@@ -1,0 +1,24 @@
+# Environment (never commit secrets)
+.env
+
+# SQLite database (runtime artifact)
+db/finally.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+backend/.venv/
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# Next.js build output
+frontend/.next/
+frontend/out/
+
+# OS
+.DS_Store
+Thumbs.db
