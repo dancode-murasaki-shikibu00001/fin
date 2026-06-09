@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Header from '@/components/Header'
-import Watchlist from '@/components/Watchlist'
+import WatchlistPanel from '@/components/market/WatchlistPanel'
 import TradeBar from '@/components/TradeBar'
-import MainChart from '@/components/MainChart'
+import MainChart from '@/components/market/MainChart'
 import PortfolioHeatmap from '@/components/PortfolioHeatmap'
 import PnLChart from '@/components/PnLChart'
 import PositionsTable from '@/components/PositionsTable'
@@ -79,22 +79,6 @@ export default function TradingTerminal() {
     return () => clearInterval(interval)
   }, [refreshPortfolio, refreshWatchlist, refreshHistory])
 
-  // Merge live SSE prices into watchlist display
-  const liveWatchlist: WatchlistItem[] = watchlist.map((item) => {
-    const live = prices[item.ticker]
-    if (!live) return item
-    const changePercent = live.prev_price > 0
-      ? ((live.price - live.prev_price) / live.prev_price) * 100
-      : 0
-    return {
-      ...item,
-      price: live.price,
-      prev_price: live.prev_price,
-      change_percent: changePercent,
-      change_direction: live.change_direction,
-    }
-  })
-
   async function handleTrade(req: TradeRequest) {
     const res = await executeTrade(req)
     if (!res.success) throw new Error(res.error ?? 'Trade failed')
@@ -122,8 +106,7 @@ export default function TradingTerminal() {
         {/* Left panel: Watchlist + Trade bar */}
         <div className="flex flex-col gap-1 overflow-hidden">
           <div className="flex-1 overflow-hidden min-h-0">
-            <Watchlist
-              items={liveWatchlist}
+            <WatchlistPanel
               selectedTicker={selectedTicker}
               onSelectTicker={setSelectedTicker}
             />
