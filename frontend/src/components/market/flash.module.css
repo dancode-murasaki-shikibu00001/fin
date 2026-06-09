@@ -1,0 +1,9 @@
+.flashGreen {
+  background-color: rgba(22, 163, 74, 0.3);
+  transition: background-color 500ms ease-out;
+}
+
+.flashRed {
+  background-color: rgba(220, 38, 38, 0.3);
+  transition: background-color 500ms ease-out;
+}
