@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+package-lock.json
+
+# next.js
+.next/
+out/
+
+# build output (served by FastAPI)
+../backend/static/
+
+# typescript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# env
+.env*.local
