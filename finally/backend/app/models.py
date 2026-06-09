@@ -44,13 +44,21 @@ class Position(BaseModel):
     avg_cost: float
     current_price: float
     unrealized_pnl: float
-    pnl_percent: float
+    pnl_pct: float
 
 
 class PortfolioResponse(BaseModel):
     cash_balance: float
     total_value: float
+    total_pnl: float
     positions: list[Position]
+
+
+class ExecuteTradeResponse(BaseModel):
+    success: bool
+    trade: "TradeResponse | None" = None
+    new_balance: float | None = None
+    error: str | None = None
 
 
 class PortfolioSnapshot(BaseModel):
