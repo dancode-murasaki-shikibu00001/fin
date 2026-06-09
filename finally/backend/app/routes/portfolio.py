@@ -218,12 +218,12 @@ async def _record_snapshot(db, user_id: str, now: str) -> None:
     cash_balance = row["cash_balance"] if row else 0.0
 
     cursor = await db.execute(
-        "SELECT ticker, quantity FROM positions WHERE user_id = ?", (user_id,)
+        "SELECT ticker, quantity, avg_cost FROM positions WHERE user_id = ?", (user_id,)
     )
     position_rows = await cursor.fetchall()
 
     positions_value = sum(
-        r["quantity"] * (price_cache.get_price(r["ticker"]) or 0.0)
+        r["quantity"] * (price_cache.get_price(r["ticker"]) or r["avg_cost"])
         for r in position_rows
     )
     total_value = cash_balance + positions_value

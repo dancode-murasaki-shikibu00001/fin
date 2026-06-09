@@ -12,7 +12,6 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.db.init import init_db
-from app.routes.portfolio import record_snapshot_standalone
 from app.routes import portfolio as portfolio_routes
 
 load_dotenv()
@@ -24,7 +23,7 @@ async def _portfolio_snapshot_loop() -> None:
     while True:
         await asyncio.sleep(30)
         try:
-            await record_snapshot_standalone()
+            await portfolio_routes.record_snapshot_standalone()
         except Exception as exc:
             logger.warning("Portfolio snapshot failed: %s", exc)
 

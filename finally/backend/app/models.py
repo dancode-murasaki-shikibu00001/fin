@@ -56,7 +56,7 @@ class PortfolioResponse(BaseModel):
 
 class ExecuteTradeResponse(BaseModel):
     success: bool
-    trade: "TradeResponse | None" = None
+    trade: TradeResponse | None = None
     new_balance: float | None = None
     error: str | None = None
 
