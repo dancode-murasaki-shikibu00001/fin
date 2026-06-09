@@ -155,7 +155,7 @@ export default function TradingTerminal() {
         {/* Right panel: Positions + AI Chat */}
         <div className="flex flex-col gap-1 overflow-hidden">
           <div style={{ flex: '0 0 40%', minHeight: 0, overflow: 'hidden' }}>
-            <PositionsTable positions={portfolio.positions} />
+            <PositionsTable positions={portfolio.positions} prices={prices} />
           </div>
           <div className="flex-1 overflow-hidden min-h-0">
             <AIChat

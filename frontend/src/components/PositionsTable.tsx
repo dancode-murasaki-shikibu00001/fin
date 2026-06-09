@@ -1,12 +1,14 @@
 'use client'
 
 import type { Position } from '@/types'
+import type { PriceMap } from '@/hooks/usePriceStream'
 
 interface PositionsTableProps {
   positions: Position[]
+  prices?: PriceMap
 }
 
-export default function PositionsTable({ positions }: PositionsTableProps) {
+export default function PositionsTable({ positions, prices = {} }: PositionsTableProps) {
   return (
     <div className="panel flex flex-col h-full">
       <div className="panel-header">Positions</div>
@@ -28,29 +30,36 @@ export default function PositionsTable({ positions }: PositionsTableProps) {
               </tr>
             </thead>
             <tbody>
-              {positions.map((pos) => (
-                <tr
-                  key={pos.ticker}
-                  style={{ borderBottom: '1px solid #2a2d3e', color: '#e6edf3' }}
-                >
-                  <td className="px-3 py-1.5 font-bold">{pos.ticker}</td>
-                  <td className="px-3 py-1.5 text-right font-mono">{pos.quantity}</td>
-                  <td className="px-3 py-1.5 text-right font-mono">${pos.avg_cost.toFixed(2)}</td>
-                  <td className="px-3 py-1.5 text-right font-mono">${pos.current_price.toFixed(2)}</td>
-                  <td
-                    className="px-3 py-1.5 text-right font-mono"
-                    style={{ color: pos.unrealized_pnl >= 0 ? '#3fb950' : '#f85149' }}
+              {positions.map((pos) => {
+                const livePrice = prices[pos.ticker]?.price ?? pos.current_price
+                const liveUnrealizedPnl = (livePrice - pos.avg_cost) * pos.quantity
+                const livePnlPct = pos.avg_cost > 0
+                  ? ((livePrice - pos.avg_cost) / pos.avg_cost) * 100
+                  : 0
+                return (
+                  <tr
+                    key={pos.ticker}
+                    style={{ borderBottom: '1px solid #2a2d3e', color: '#e6edf3' }}
                   >
-                    {pos.unrealized_pnl >= 0 ? '+' : ''}${pos.unrealized_pnl.toFixed(2)}
-                  </td>
-                  <td
-                    className="px-3 py-1.5 text-right font-mono"
-                    style={{ color: pos.pnl_percent >= 0 ? '#3fb950' : '#f85149' }}
-                  >
-                    {pos.pnl_percent >= 0 ? '+' : ''}{pos.pnl_percent.toFixed(2)}%
-                  </td>
-                </tr>
-              ))}
+                    <td className="px-3 py-1.5 font-bold">{pos.ticker}</td>
+                    <td className="px-3 py-1.5 text-right font-mono">{pos.quantity}</td>
+                    <td className="px-3 py-1.5 text-right font-mono">${pos.avg_cost.toFixed(2)}</td>
+                    <td className="px-3 py-1.5 text-right font-mono">${livePrice.toFixed(2)}</td>
+                    <td
+                      className="px-3 py-1.5 text-right font-mono"
+                      style={{ color: liveUnrealizedPnl >= 0 ? '#3fb950' : '#f85149' }}
+                    >
+                      {liveUnrealizedPnl >= 0 ? '+' : ''}${liveUnrealizedPnl.toFixed(2)}
+                    </td>
+                    <td
+                      className="px-3 py-1.5 text-right font-mono"
+                      style={{ color: livePnlPct >= 0 ? '#3fb950' : '#f85149' }}
+                    >
+                      {livePnlPct >= 0 ? '+' : ''}{livePnlPct.toFixed(2)}%
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         )}
