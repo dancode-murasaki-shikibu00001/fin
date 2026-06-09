@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.db.init import init_db
 from app.routes import portfolio as portfolio_routes
+from app.routes.watchlist import router as watchlist_router
 
 load_dotenv()
 
@@ -52,6 +53,7 @@ app.add_middleware(
 )
 
 app.include_router(portfolio_routes.router)
+app.include_router(watchlist_router, prefix="/api")
 
 
 @app.get("/api/health")
