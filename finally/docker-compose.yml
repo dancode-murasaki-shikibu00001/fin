@@ -1,6 +1,8 @@
 services:
   app:
-    build: .
+    build:
+      context: ..
+      dockerfile: finally/Dockerfile
     image: finally
     ports:
       - "8000:8000"

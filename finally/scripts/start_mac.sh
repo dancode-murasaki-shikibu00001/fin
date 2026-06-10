@@ -6,6 +6,7 @@ IMAGE_NAME="finally"
 PORT=8000
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # Parse flags
 FORCE_BUILD=false
@@ -18,7 +19,7 @@ done
 # Build image if missing or --build flag passed
 if $FORCE_BUILD || ! docker image inspect "$IMAGE_NAME" &>/dev/null; then
   echo "Building Docker image..."
-  docker build -t "$IMAGE_NAME" "$PROJECT_ROOT"
+  docker build -f "$PROJECT_ROOT/Dockerfile" -t "$IMAGE_NAME" "$REPO_ROOT"
 fi
 
 # Check if container already running

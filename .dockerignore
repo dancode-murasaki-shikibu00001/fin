@@ -1,0 +1,12 @@
+frontend/node_modules/
+test/node_modules/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+finally/db/
+db/
+.beads/
+.claude/
+.runtime/
+CLAUDE.md
+*.db

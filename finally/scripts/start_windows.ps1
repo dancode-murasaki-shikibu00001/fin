@@ -12,12 +12,13 @@ $ImageName = "finally"
 $Port = 8000
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent $ScriptDir
+$RepoRoot = Split-Path -Parent $ProjectRoot
 
 # Build image if missing or -Build flag passed
 $imageExists = docker image inspect $ImageName 2>$null
 if ($Build -or -not $imageExists) {
     Write-Host "Building Docker image..."
-    docker build -t $ImageName $ProjectRoot
+    docker build -f "$ProjectRoot/Dockerfile" -t $ImageName $RepoRoot
 }
 
 # Check if container already running

@@ -46,13 +46,13 @@ class MassiveClient(MarketDataProvider):
                 continue
             existing = price_cache.get(ticker)
             old_price = existing["price"] if existing else price
-            direction = "up" if price > old_price else ("down" if price < old_price else "flat")
+            change_direction = "up" if price > old_price else ("down" if price < old_price else "neutral")
             price_cache.set(ticker, {
                 "ticker": ticker,
                 "price": round(float(price), 2),
                 "prev_price": round(float(prev_price), 2),
                 "timestamp": ts,
-                "direction": direction,
+                "change_direction": change_direction,
             })
 
     def get_price(self, ticker: str) -> dict:

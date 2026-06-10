@@ -5,8 +5,8 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException
 
-from app import price_cache
 from app.db.init import get_db
+from app.market.cache import price_cache as _market_price_cache
 from app.models import (
     ExecuteTradeResponse,
     PortfolioResponse,
@@ -19,6 +19,11 @@ from app.models import (
 router = APIRouter(prefix="/api/portfolio")
 
 _USER_ID = "default"
+
+
+def _get_price(ticker: str) -> float | None:
+    entry = _market_price_cache.get(ticker)
+    return entry.get("price") if entry else None
 
 
 @router.get("", response_model=PortfolioResponse)
@@ -37,33 +42,45 @@ async def get_portfolio():
         )
         position_rows = await cursor.fetchall()
 
-        positions = []
+        # First pass: compute prices, pnl, market_value
+        raw_positions = []
         positions_value = 0.0
         for r in position_rows:
             ticker = r["ticker"]
             quantity = r["quantity"]
             avg_cost = r["avg_cost"]
-            current_price = price_cache.get_price(ticker) or avg_cost
+            current_price = _get_price(ticker) or avg_cost
             unrealized_pnl = (current_price - avg_cost) * quantity
-            pnl_pct = (current_price - avg_cost) / avg_cost * 100 if avg_cost else 0.0
-            positions_value += quantity * current_price
-            positions.append(
-                Position(
-                    ticker=ticker,
-                    quantity=quantity,
-                    avg_cost=avg_cost,
-                    current_price=current_price,
-                    unrealized_pnl=unrealized_pnl,
-                    pnl_pct=pnl_pct,
-                )
-            )
+            pnl_percent = (current_price - avg_cost) / avg_cost * 100 if avg_cost else 0.0
+            market_value = quantity * current_price
+            positions_value += market_value
+            raw_positions.append((ticker, quantity, avg_cost, current_price, unrealized_pnl, pnl_percent, market_value))
 
         total_value = cash_balance + positions_value
-        total_pnl = sum(p.unrealized_pnl for p in positions)
+        total_unrealized_pnl = sum(p[4] for p in raw_positions)
+        total_pnl_percent = (total_unrealized_pnl / (total_value - total_unrealized_pnl) * 100
+                             if total_value != total_unrealized_pnl else 0.0)
+
+        # Second pass: attach portfolio_weight now that total_value is known
+        positions = [
+            Position(
+                ticker=ticker,
+                quantity=quantity,
+                avg_cost=avg_cost,
+                current_price=current_price,
+                unrealized_pnl=unrealized_pnl,
+                pnl_percent=pnl_percent,
+                market_value=market_value,
+                portfolio_weight=market_value / total_value if total_value else 0.0,
+            )
+            for ticker, quantity, avg_cost, current_price, unrealized_pnl, pnl_percent, market_value in raw_positions
+        ]
+
         return PortfolioResponse(
             cash_balance=cash_balance,
             total_value=total_value,
-            total_pnl=total_pnl,
+            total_unrealized_pnl=total_unrealized_pnl,
+            total_pnl_percent=total_pnl_percent,
             positions=positions,
         )
     finally:
@@ -81,7 +98,7 @@ async def execute_trade(request: TradeRequest):
     if quantity <= 0:
         raise HTTPException(status_code=400, detail="quantity must be positive")
 
-    current_price = price_cache.get_price(ticker)
+    current_price = _get_price(ticker)
     if current_price is None:
         raise HTTPException(status_code=400, detail=f"No price available for {ticker}")
 
@@ -202,7 +219,7 @@ async def get_portfolio_history():
         )
         rows = await cursor.fetchall()
         return [
-            PortfolioSnapshot(total_value=r["total_value"], recorded_at=r["recorded_at"])
+            PortfolioSnapshot(total_value=r["total_value"], timestamp=r["recorded_at"])
             for r in rows
         ]
     finally:
@@ -223,7 +240,7 @@ async def _record_snapshot(db, user_id: str, now: str) -> None:
     position_rows = await cursor.fetchall()
 
     positions_value = sum(
-        r["quantity"] * (price_cache.get_price(r["ticker"]) or r["avg_cost"])
+        r["quantity"] * (_get_price(r["ticker"]) or r["avg_cost"])
         for r in position_rows
     )
     total_value = cash_balance + positions_value

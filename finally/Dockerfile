@@ -16,14 +16,16 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 WORKDIR /app
 
 # Install Python dependencies
-COPY backend/pyproject.toml backend/uv.lock* ./backend/
+# Build context is the repo root; backend source lives in finally/backend/
+COPY finally/backend/pyproject.toml finally/backend/uv.lock* ./backend/
 RUN cd backend && uv sync --frozen --no-dev
 
 # Copy backend source
-COPY backend/ ./backend/
+COPY finally/backend/ ./backend/
 
 # Copy frontend static export into static/
-COPY --from=frontend-build /app/frontend/out ./static/
+# next.config.js distDir is '../backend/static', so the export lands at /app/backend/static
+COPY --from=frontend-build /app/backend/static ./static/
 
 # Volume mount point for SQLite database
 RUN mkdir -p /app/db

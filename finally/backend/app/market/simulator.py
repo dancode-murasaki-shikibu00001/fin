@@ -44,7 +44,7 @@ class GBMSimulator(MarketDataProvider):
                 "price": price,
                 "prev_price": price,
                 "timestamp": ts,
-                "direction": "flat",
+                "change_direction": "neutral",
             })
 
     async def update_prices(self) -> None:
@@ -68,14 +68,14 @@ class GBMSimulator(MarketDataProvider):
                 new_price *= 1 + move
 
             new_price = round(new_price, 2)
-            direction = "up" if new_price > price else ("down" if new_price < price else "flat")
+            change_direction = "up" if new_price > price else ("down" if new_price < price else "neutral")
             self._prices[ticker] = new_price
             price_cache.set(ticker, {
                 "ticker": ticker,
                 "price": new_price,
                 "prev_price": round(price, 2),
                 "timestamp": ts,
-                "direction": direction,
+                "change_direction": change_direction,
             })
 
     def get_price(self, ticker: str) -> dict:

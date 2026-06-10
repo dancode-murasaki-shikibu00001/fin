@@ -44,13 +44,16 @@ class Position(BaseModel):
     avg_cost: float
     current_price: float
     unrealized_pnl: float
-    pnl_pct: float
+    pnl_percent: float
+    market_value: float
+    portfolio_weight: float
 
 
 class PortfolioResponse(BaseModel):
     cash_balance: float
     total_value: float
-    total_pnl: float
+    total_unrealized_pnl: float
+    total_pnl_percent: float
     positions: list[Position]
 
 
@@ -63,7 +66,7 @@ class ExecuteTradeResponse(BaseModel):
 
 class PortfolioSnapshot(BaseModel):
     total_value: float
-    recorded_at: str
+    timestamp: str  # DB column is recorded_at; renamed to match frontend type
 
 
 # --- Chat ---
